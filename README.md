@@ -1,4 +1,4 @@
-# Custom Logger
+# Custom Color Logger
 
 A Python logging library that provides colored console output with sound effects.
 
