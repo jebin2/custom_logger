@@ -10,12 +10,11 @@ setup(
     package_data={
         'custom_logger': ['media/error.mp3'],
     },
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Jebin Einstein",
     description="A custom logging library with colored output and sound effects",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/custom_logger",
+    url="https://github.com/jebin2/custom_logger",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

@@ -130,7 +130,7 @@ class CustomLogger:
         try:
             self.columns, _ = os.get_terminal_size()
         except:
-            self.columns = 100
+            self.columns = 100  # Default width if terminal size cannot be determined
 
     def play_sound(self, file_name):
         try:
