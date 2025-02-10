@@ -4,23 +4,25 @@ from datetime import datetime
 import pkg_resources
 
 class CustomLogger:
-    def __init__(self):
-        # ANSI escape codes
-        self.yellow_background = "\033[43m"
-        self.green_background = "\033[42m"
-        self.dark_green_background = "\033[48;5;22m"
-        self.blue_background = "\033[44m"
-        self.red_background = "\033[41m"
-        self.bold_white_text = "\033[1;37m"
-        self.underline_text = "\033[4m"
-        self.reset_formatting = "\033[0m"
-        self.dark_pink_background = "\033[48;5;52m"
-        self.light_pink_background = "\033[48;5;217m"
-        self.pink_background = "\033[48;5;212m"
-        self.bright_purple_background = "\033[48;5;129m"
-        self.dark_purple_background = "\033[48;5;54m"
+    # ANSI codes stored as class variables to reduce instance memory
+    COLORS = {
+        'yellow_bg': "\033[43m",
+        'green_bg': "\033[42m",
+        'dark_green_bg': "\033[48;5;22m",
+        'blue_bg': "\033[44m",
+        'red_bg': "\033[41m",
+        'bold_white': "\033[1;37m",
+        'underline': "\033[4m",
+        'reset': "\033[0m",
+        'dark_pink_bg': "\033[48;5;52m",
+        'light_pink_bg': "\033[48;5;217m",
+        'pink_bg': "\033[48;5;212m",
+        'bright_purple_bg': "\033[48;5;129m",
+        'dark_purple_bg': "\033[48;5;54m"
+    }
 
-        self.DIGITS = {
+    # Pre-rendered ASCII art stored as class variable
+    DIGITS = {
             '1': [
                 "    ███    ",
                 " ██████    ",
@@ -113,109 +115,111 @@ class CustomLogger:
             ]
         }
 
-        self.SAD_FACE = [
-            "     ██████████████     ",
-            "   ██              ██   ",
-            " ██                  ██ ",
-            "██   ████      ████   ██",
-            "██   ████      ████   ██",
-            "██                    ██",
-            "██                    ██",
-            "██     ██████████     ██",
-            " ██     ████████     ██ ",
-            "   ██              ██   ",
-            "     ██████████████     "
-        ]
+    SAD_FACE = [
+        "     ██████████████     ",
+        "   ██              ██   ",
+        " ██                  ██ ",
+        "██   ████      ████   ██",
+        "██   ████      ████   ██",
+        "██                    ██",
+        "██                    ██",
+        "██     ██████████     ██",
+        " ██     ████████     ██ ",
+        "   ██              ██   ",
+        "     ██████████████     "
+    ]
 
+    def __init__(self):
+        self.columns = self._get_terminal_size()
+        self._sound_initialized = False
+        self._pygame = None
+
+    @staticmethod
+    def _get_terminal_size():
         try:
-            self.columns, _ = os.get_terminal_size()
+            return os.get_terminal_size().columns
         except:
-            self.columns = 100  # Default width if terminal size cannot be determined
+            return 100
 
-    def play_sound(self, file_name):
+    @staticmethod
+    def _format_timestamp():
+        return datetime.now().isoformat()
+
+    def _lazy_init_sound(self):
+        if not self._sound_initialized:
+            try:
+                import pygame
+                self._pygame = pygame
+                pygame.mixer.init()
+                self._sound_initialized = True
+            except ImportError:
+                self._sound_initialized = False
+
+    def _play_sound(self, max_duration=2):
+        if not self._sound_initialized:
+            self._lazy_init_sound()
+            if not self._sound_initialized:
+                return
+
         try:
-            import pygame
-            sound_path = pkg_resources.resource_filename('custom_logger', f'media/{file_name}')
-            pygame.mixer.init()
-            pygame.mixer.music.load(sound_path)
-            pygame.mixer.music.play()
-            
-            last_position = 0
-            hang_count = 0
-            max_hang_time = 1
-            total_wait_time = 2
-            
-            while pygame.mixer.music.get_busy():
-                current_position = pygame.mixer.music.get_pos()
-                
-                if current_position == last_position:
-                    hang_count += 1
-                    if hang_count > max_hang_time:
-                        pygame.mixer.music.stop()
-                        break
-                else:
-                    hang_count = 0
-                
-                last_position = current_position
-                time.sleep(1)
-                total_wait_time -= 1
-                
-                if total_wait_time <= 0:
-                    pygame.mixer.music.stop()
-                    break
+            sound_path = pkg_resources.resource_filename('custom_logger', f'media/error.mp3')
+            self._pygame.mixer.music.load(sound_path)
+            self._pygame.mixer.music.play()
+            time.sleep(min(max_duration, 2))
+            self._pygame.mixer.music.stop()
+        except Exception:
+            pass
 
-            pygame.mixer.music.stop()
-        except Exception as e:
-            self.warning(f"Error playing sound: {e}")
+    def _print_message(self, color, msg, seconds=0, overwrite=False, timestamp=True):
+        format_start = f"{self.COLORS[color]}{self.COLORS['bold_white']}"
+        format_end = self.COLORS['reset']
 
-    def custom_print(self, start, msg, end, seconds=0, overwrite=False):
-        try:
-            if overwrite:
-                print("\033[F" * 3)
-                print(f'\033[K{start}{datetime.now().isoformat()}:: {msg}{end}')
+        if overwrite:
+            print("\033[F" * 3)  # Move cursor up 3 lines
+            print(f'\033[K{format_start}{self._format_timestamp()}{format_end} {format_start}{msg}{format_end}')
+        else:
+            if timestamp and not ("----" in msg or "█" in msg):
+                print(f"{format_start}{self._format_timestamp()}{format_end} {format_start}{msg}{format_end}")
             else:
-                if "----" in msg or "█" in msg:
-                    print(f'{start}{msg}{end}')
-                else:
-                    print(f'{start}{datetime.now().isoformat()}:: {msg}{end}')
+                print(f"{format_start}{msg}{format_end}")
 
-            if seconds > 0:
-                for i in range(seconds, 0, -1):
-                    for lineCount in range(7):
-                        line = ''.join(self.DIGITS[digit][lineCount] for digit in str(i))
-                        print(f'\033[K{start}{line}{end}')
-                    time.sleep(1)
-                    if i > 1:
-                        print("\033[F" * 8)
-        except Exception as e:
-            print(f"Error: {e}")
+        if seconds > 0:
+            self._display_countdown(seconds, format_start, format_end)
 
-    def print_line(self):
-        dash = "-" * (self.columns - 1)
-        self.custom_print('', dash, '')
+    def _display_countdown(self, seconds, format_start, format_end):
+        for i in range(seconds, 0, -1):
+            for line_count in range(7):
+                line = ''.join(self.DIGITS[digit][line_count] for digit in str(i))
+                print(f'\033[K{format_start}{line}{format_end}')
+            time.sleep(1)
+            if i > 1:
+                print("\033[F" * 8)
+
+    def _print_line(self):
+        print("-" * (self.columns - 1))
 
     def debug(self, msg, seconds=0, overwrite=False):
-        self.custom_print(f"{self.dark_green_background}{self.bold_white_text}", f"{msg}", f"{self.reset_formatting}", seconds, overwrite)
-        self.print_line()
+        self._print_message('dark_green_bg', msg, seconds, overwrite)
+        self._print_line()
 
     def info(self, msg, seconds=0, overwrite=False):
-        self.custom_print(f"{self.bright_purple_background}{self.bold_white_text}", f"{msg}", f"{self.reset_formatting}", seconds, overwrite)
-        self.print_line()
+        self._print_message('bright_purple_bg', msg, seconds, overwrite)
+        self._print_line()
 
-    def warning(self, msg, seconds=0):
-        self.custom_print(f"{self.pink_background}{self.bold_white_text}", f"{msg}", f"{self.reset_formatting}", seconds)
-        self.print_line()
+    def warning(self, msg, seconds=0, overwrite=False):
+        self._print_message('pink_bg', msg, seconds, overwrite)
+        self._print_line()
 
-    def success(self, msg, seconds=0):
-        self.custom_print(f"{self.blue_background}{self.bold_white_text}", f"{msg}", f"{self.reset_formatting}", seconds)
-        self.print_line()
+    def success(self, msg, seconds=0, overwrite=False):
+        self._print_message('blue_bg', msg, seconds, overwrite)
+        self._print_line()
 
     def error(self, msg, seconds=0, play_sound=True):
-        self.custom_print(f"{self.red_background}{self.bold_white_text}", f"{msg}", f"{self.reset_formatting}", seconds)
+        self._print_message('red_bg', msg, seconds)
         if play_sound:
-            self.play_sound('error.mp3')
+            self._play_sound()
         
         for line in self.SAD_FACE:
-            self.custom_print(f"{self.red_background}{self.bold_white_text}", line, f"{self.reset_formatting}")
+            self._print_message('red_bg', line, timestamp=False)
         
-        self.print_line()
+        self._print_line()

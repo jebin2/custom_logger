@@ -27,7 +27,7 @@ def test_logger():
     logger_config.info("This message overwrites the previous one", overwrite=True)
 
     for i in range(3):
-        logger_config.info(f"Processing item {i+1}")
+        logger_config.info(f"Processing -item {i+1}")
         time.sleep(1)
 
     logger_config.error("This error message should play a sound")
