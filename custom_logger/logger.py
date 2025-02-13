@@ -156,12 +156,12 @@ class CustomLogger:
                 self._sound_initialized = False
 
     def _play_sound(self, max_duration=2):
-        if not self._sound_initialized:
-            self._lazy_init_sound()
-            if not self._sound_initialized:
-                return
-
         try:
+            if not self._sound_initialized:
+                self._lazy_init_sound()
+                if not self._sound_initialized:
+                    return
+
             sound_path = pkg_resources.resource_filename('custom_logger', f'media/error.mp3')
             self._pygame.mixer.music.load(sound_path)
             self._pygame.mixer.music.play()
