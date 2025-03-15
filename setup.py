@@ -6,6 +6,7 @@ setup(
     packages=find_packages(exclude=['tests*']),
     install_requires=[
         "pygame",
+		"python-dotenv",
     ],
     package_data={
         'custom_logger': ['media/error.mp3'],
