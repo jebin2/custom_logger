@@ -216,7 +216,7 @@ class CustomLogger:
 
     def error(self, msg, seconds=0):
         self._print_message('red_bg', msg, seconds)
-        if os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True":
+        if os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "") == "" or os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True":
             self._play_sound()
         
         for line in self.SAD_FACE:
