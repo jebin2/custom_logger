@@ -171,6 +171,7 @@ class CustomLogger:
             pass
 
     def _print_message(self, color, msg, seconds=0, overwrite=False, timestamp=True):
+        self.add_to_file(msg)
         format_start = f"{self.COLORS[color]}{self.COLORS['bold_white']}"
         format_end = self.COLORS['reset']
 
@@ -185,6 +186,13 @@ class CustomLogger:
 
         if seconds > 0:
             self._display_countdown(seconds, format_start, format_end)
+
+    def add_to_file(self, text):
+        try:
+            with open(os.getenv("LOG_FILE_PATH"), 'a') as file:
+                file.write(text + '\n')
+        except: pass
+
 
     def _display_countdown(self, seconds, format_start, format_end):
         for i in range(seconds, 0, -1):
@@ -218,8 +226,8 @@ class CustomLogger:
         self._print_message('red_bg', msg, seconds)
         if os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "") == "" or os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True":
             self._play_sound()
-        
+
         for line in self.SAD_FACE:
             self._print_message('red_bg', line, timestamp=False)
-        
+
         self._print_line()

@@ -2,3 +2,5 @@
 custom_logger.egg-info/
 custom_logger/__pycache__
 .env
+sample.log
+venv/

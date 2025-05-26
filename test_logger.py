@@ -7,16 +7,16 @@ def test_logger():
 
     logger_config.info("This is an info message")
     time.sleep(1)
-    
+
     logger_config.debug("This is a debug message")
     time.sleep(1)
-    
+
     logger_config.warning("This is a warning message")
     time.sleep(1)
-    
+
     logger_config.success("This is a success message")
     time.sleep(1)
-    
+
     logger_config.error("This is an error message")
     time.sleep(1)
 
@@ -31,7 +31,7 @@ def test_logger():
         time.sleep(1)
 
     logger_config.error("This error message should play a sound")
-    logger_config.error("This error message with no sound", play_sound=False)
+    logger_config.error("This error message with no sound")
 
 if __name__ == "__main__":
     test_logger()
