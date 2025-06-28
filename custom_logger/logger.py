@@ -6,19 +6,15 @@ import pkg_resources
 class CustomLogger:
     # ANSI codes stored as class variables to reduce instance memory
     COLORS = {
-        'yellow_bg': "\033[43m",
-        'green_bg': "\033[42m",
-        'dark_green_bg': "\033[48;5;22m",
-        'blue_bg': "\033[44m",
-        'red_bg': "\033[41m",
+        # Refined color palette - more professional and visually appealing
+        'indigo_bg': "\033[48;5;54m",          # Debug - deep, thoughtful
+        'ocean_blue_bg': "\033[48;5;24m",      # Info - clear, professional
+        'coral_bg': "\033[48;5;203m",          # Warning - warm but serious
+        'emerald_bg': "\033[48;5;22m",         # Success - vibrant, positive
+        'burgundy_bg': "\033[48;5;88m",        # Error - serious, attention-getting
         'bold_white': "\033[1;37m",
         'underline': "\033[4m",
         'reset': "\033[0m",
-        'dark_pink_bg': "\033[48;5;52m",
-        'light_pink_bg': "\033[48;5;217m",
-        'pink_bg': "\033[48;5;212m",
-        'bright_purple_bg': "\033[48;5;129m",
-        'dark_purple_bg': "\033[48;5;54m"
     }
 
     # Pre-rendered ASCII art stored as class variable
@@ -193,7 +189,6 @@ class CustomLogger:
                 file.write(text + '\n')
         except: pass
 
-
     def _display_countdown(self, seconds, format_start, format_end):
         for i in range(seconds, 0, -1):
             for line_count in range(7):
@@ -207,27 +202,27 @@ class CustomLogger:
         print("-" * (self.columns - 1))
 
     def debug(self, msg, seconds=0, overwrite=False):
-        self._print_message('dark_green_bg', msg, seconds, overwrite)
+        self._print_message('indigo_bg', msg, seconds, overwrite)
         self._print_line()
 
     def info(self, msg, seconds=0, overwrite=False):
-        self._print_message('bright_purple_bg', msg, seconds, overwrite)
+        self._print_message('ocean_blue_bg', msg, seconds, overwrite)
         self._print_line()
 
     def warning(self, msg, seconds=0, overwrite=False):
-        self._print_message('pink_bg', msg, seconds, overwrite)
+        self._print_message('coral_bg', msg, seconds, overwrite)
         self._print_line()
 
     def success(self, msg, seconds=0, overwrite=False):
-        self._print_message('blue_bg', msg, seconds, overwrite)
+        self._print_message('emerald_bg', msg, seconds, overwrite)
         self._print_line()
 
     def error(self, msg, seconds=0):
-        self._print_message('red_bg', msg, seconds)
+        self._print_message('burgundy_bg', msg, seconds)
         if os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "") == "" or os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True":
             self._play_sound()
 
         for line in self.SAD_FACE:
-            self._print_message('red_bg', line, timestamp=False)
+            self._print_message('burgundy_bg', line, timestamp=False)
 
         self._print_line()
