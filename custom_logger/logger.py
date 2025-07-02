@@ -8,7 +8,7 @@ class CustomLogger:
     COLORS = {
         # Refined color palette - more professional and visually appealing
         'indigo_bg': "\033[48;5;54m",          # Debug - deep, thoughtful
-        'ocean_blue_bg': "\033[48;5;24m",      # Info - clear, professional
+        'ocean_blue_bg': "\033[48;5;18m",      # Info - clear, professional
         'coral_bg': "\033[48;5;203m",          # Warning - warm but serious
         'emerald_bg': "\033[48;5;22m",         # Success - vibrant, positive
         'burgundy_bg': "\033[48;5;88m",        # Error - serious, attention-getting
