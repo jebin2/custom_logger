@@ -158,7 +158,10 @@ class CustomLogger:
                 if not self._sound_initialized:
                     return
 
-            sound_path = pkg_resources.resource_filename('custom_logger', f'media/error.mp3')
+            sound_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                'media/error.mp3'
+            )
             self._pygame.mixer.music.load(sound_path)
             self._pygame.mixer.music.play()
             time.sleep(min(max_duration, 2))
