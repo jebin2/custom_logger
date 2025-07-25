@@ -1,7 +1,6 @@
 import time
 import os
 from datetime import datetime
-import pkg_resources
 
 class CustomLogger:
     # ANSI codes stored as class variables to reduce instance memory
