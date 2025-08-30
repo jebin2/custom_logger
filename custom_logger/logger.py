@@ -126,8 +126,6 @@ class CustomLogger:
 
     def __init__(self):
         self.columns = self._get_terminal_size()
-        self._sound_initialized = False
-        self._pygame = None
 
     @staticmethod
     def _get_terminal_size():
@@ -140,33 +138,20 @@ class CustomLogger:
     def _format_timestamp():
         return datetime.now().isoformat()
 
-    def _lazy_init_sound(self):
-        if not self._sound_initialized:
-            try:
-                import pygame
-                self._pygame = pygame
-                pygame.mixer.init()
-                self._sound_initialized = True
-            except ImportError:
-                self._sound_initialized = False
-
-    def _play_sound(self, max_duration=2):
+    def _play_sound(self):
         try:
-            if not self._sound_initialized:
-                self._lazy_init_sound()
-                if not self._sound_initialized:
-                    return
-
+            import subprocess
             sound_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 'media/error.mp3'
             )
-            self._pygame.mixer.music.load(sound_path)
-            self._pygame.mixer.music.play()
-            time.sleep(min(max_duration, 2))
-            self._pygame.mixer.music.stop()
-        except Exception:
-            pass
+            subprocess.Popen(
+                ["mpg123", "-q", sound_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        except Exception as e:
+            print(f"Sound play failed: {e}")
 
     def _print_message(self, color, msg, seconds=0, overwrite=False, timestamp=True):
         self.add_to_file(msg)
