@@ -126,6 +126,14 @@ class CustomLogger:
 
     def __init__(self):
         self.columns = self._get_terminal_size()
+        # Cache environment variables once for performance
+        self._log_file_path = os.getenv("LOG_FILE_PATH")
+        self._play_error_sound = os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True"
+        # Lazy file handle for efficient I/O
+        self._file_handle = None
+        # Rate-limit sound playback (min 2 seconds between sounds)
+        self._last_sound_time = 0
+        self._sound_cooldown = 2
 
     @staticmethod
     def _get_terminal_size():
@@ -138,7 +146,13 @@ class CustomLogger:
     def _format_timestamp():
         return datetime.now().isoformat()
 
-    def _play_sound(self):
+    def _play_error_sound_effect(self):
+        # Rate-limit: skip if within cooldown period
+        now = time.time()
+        if now - self._last_sound_time < self._sound_cooldown:
+            return
+        self._last_sound_time = now
+        
         try:
             import subprocess
             sound_path = os.path.join(
@@ -150,8 +164,8 @@ class CustomLogger:
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
-        except Exception as e:
-            print(f"Sound play failed: {e}")
+        except Exception:
+            pass  # Silently fail - sound is non-critical
 
     def _print_message(self, color, msg, seconds=0, overwrite=False, timestamp=True):
         self.add_to_file(msg)
@@ -171,10 +185,14 @@ class CustomLogger:
             self._display_countdown(seconds, format_start, format_end)
 
     def add_to_file(self, text):
+        if not self._log_file_path:
+            return
         try:
-            with open(os.getenv("LOG_FILE_PATH"), 'a') as file:
-                file.write(text + '\n')
-        except: pass
+            if self._file_handle is None:
+                self._file_handle = open(self._log_file_path, 'a', buffering=1)  # Line buffering
+            self._file_handle.write(text + '\n')
+        except Exception:
+            self._file_handle = None  # Reset on error, will retry next write
 
     def _display_countdown(self, seconds, format_start, format_end):
         for i in range(seconds, 0, -1):
@@ -206,10 +224,32 @@ class CustomLogger:
 
     def error(self, msg, seconds=0):
         self._print_message('burgundy_bg', msg, seconds)
-        if os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "") == "" or os.getenv("CUSTOM_LOGGER_PLAY_ERROR_SOUND", "True") == "True":
-            self._play_sound()
+        if self._play_error_sound:
+            self._play_error_sound_effect()
 
         for line in self.SAD_FACE:
             self._print_message('burgundy_bg', line, timestamp=False)
 
         self._print_line()
+
+    def close(self):
+        """Clean up resources. Call this when done logging."""
+        if self._file_handle:
+            try:
+                self._file_handle.close()
+            except Exception:
+                pass
+            self._file_handle = None
+
+    def __del__(self):
+        """Destructor to ensure file handle is closed."""
+        self.close()
+
+    def __enter__(self):
+        """Context manager support."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager cleanup."""
+        self.close()
+        return False
