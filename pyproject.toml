@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "custom_logger"
+version = "0.1.0"
+description = "A custom logging library with colored output and sound effects"
+readme = "README.md"
+authors = [{ name = "Jebin Einstein" }]
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pygame",
+    "python-dotenv",
+]
+
+[project.urls]
+Homepage = "https://github.com/jebin2/custom_logger"
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+custom_logger = ["media/error.mp3"]
