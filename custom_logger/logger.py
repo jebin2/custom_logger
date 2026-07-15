@@ -168,7 +168,7 @@ class CustomLogger:
             pass  # Silently fail - sound is non-critical
 
     def _print_message(self, color, msg, seconds=0, overwrite=False, timestamp=True):
-        self.add_to_file(msg)
+        self.add_to_file(msg, timestamp=timestamp)
         format_start = f"{self.COLORS[color]}{self.COLORS['bold_white']}"
         format_end = self.COLORS['reset']
 
@@ -184,9 +184,14 @@ class CustomLogger:
         if seconds > 0:
             self._display_countdown(seconds, format_start, format_end)
 
-    def add_to_file(self, text):
+    def add_to_file(self, text, timestamp=True):
         if not self._log_file_path:
             return
+        # The file is what gets read back later, often on another machine, so
+        # it needs the time as much as the terminal does. Separators and ASCII
+        # art carry nothing worth stamping, and are skipped on stdout too.
+        if timestamp and not ("----" in text or "█" in text):
+            text = f"{self._format_timestamp()} {text}"
         try:
             if self._file_handle is None:
                 self._file_handle = open(self._log_file_path, 'a', buffering=1)  # Line buffering
